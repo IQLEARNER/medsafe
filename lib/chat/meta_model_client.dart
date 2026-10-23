@@ -18,6 +18,17 @@ class ScriptedClient implements LlmClient {
   'your confirmation.';
 }
 
+class UnavailableLlmClient implements LlmClient {
+  final String provider;
+
+  const UnavailableLlmClient(this.provider);
+
+  @override
+  Future<String> reply(String userText, String factsContext) async =>
+      '$provider AI is not configured in this phone build. Reinstall or run '
+      'the app with the provider API key; no medication changes were recorded.';
+}
+
 class GoogleAiStudioClient implements LlmClient {
   final String apiKey;
   final String model;

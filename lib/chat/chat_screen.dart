@@ -103,12 +103,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
     const llmProvider = String.fromEnvironment(
       'MEDSAFE_AI_PROVIDER',
-      defaultValue: 'scripted',
+      defaultValue: 'nvidia',
     );
-    const llmBaseUrl = String.fromEnvironment('MEDSAFE_AI_BASE_URL');
+    const llmBaseUrl = String.fromEnvironment(
+      'MEDSAFE_AI_BASE_URL',
+      defaultValue: 'https://integrate.api.nvidia.com/v1',
+    );
     const llmModel = String.fromEnvironment(
       'MEDSAFE_AI_MODEL',
-      defaultValue: 'gemini-2.0-flash',
+      defaultValue: 'nvidia/nemotron-3.5-lightning-30b-a3b',
     );
     const llmApiKey = String.fromEnvironment(
       'MEDSAFE_AI_API_KEY',
@@ -117,14 +120,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final llm = switch (llmProvider.toLowerCase()) {
       'google' || 'googleai' || 'gemini' =>
-        llmApiKey.isEmpty ? ScriptedClient() : GoogleAiStudioClient(apiKey: llmApiKey, model: llmModel),
-      _ => (llmBaseUrl.isNotEmpty && llmApiKey.isNotEmpty)
-          ? HttpLlmClient(
-              baseUrl: llmBaseUrl,
-              model: llmModel,
-              apiKey: llmApiKey,
-            )
-          : ScriptedClient(),
+        llmApiKey.isEmpty
+            ? const UnavailableLlmClient('Google')
+            : GoogleAiStudioClient(apiKey: llmApiKey, model: llmModel),
+      'nvidia' || 'nim' =>
+        llmApiKey.isEmpty
+            ? const UnavailableLlmClient('NVIDIA')
+            : HttpLlmClient(
+                baseUrl: llmBaseUrl,
+                model: llmModel,
+                apiKey: llmApiKey,
+              ),
+      _ => const UnavailableLlmClient('Configured'),
     };
 
     return ChatAgent(
