@@ -1,0 +1,6 @@
+{
+  "MEDSAFE_AI_PROVIDER": "nvidia",
+  "MEDSAFE_AI_BASE_URL": "https://integrate.api.nvidia.com/v1",
+  "MEDSAFE_AI_API_KEY": "paste-your-NVIDIA-key-here",
+  "MEDSAFE_AI_MODEL": "nvidia/nemotron-3.5-lightning-30b-a3b"
+}

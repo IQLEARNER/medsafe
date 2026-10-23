@@ -39,6 +39,7 @@ venv/
 .env
 .env.*
 !.env.example
+*.dart-defines.json
 tools/schoology_messages/inbox.mhtml
 tools/schoology_messages/
 
