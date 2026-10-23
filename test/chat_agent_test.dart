@@ -104,6 +104,20 @@ void main() {
     expect(llm.lastFactsContext, isNotEmpty);
   });
 
+  test('scripted fallback does not expose internal conversation context', () async {
+    final a = ChatAgent(
+      tools: AppTools(todaysMeds: const [], loggedMedIds: const []),
+      memory: ChatRepository(),
+      llm: ScriptedClient(),
+    );
+
+    final reply = await a.handleAsync('hi');
+
+    expect(reply, contains('medication schedule'));
+    expect(reply, isNot(contains('user:')));
+    expect(reply, isNot(contains('Recent conversation')));
+  });
+
   test('follow-up dosage messages retain the prior medication conversation', () async {
     final llm = FakeLlmClient(
       replies: const [

@@ -13,7 +13,9 @@ abstract class LlmClient {
 class ScriptedClient implements LlmClient {
   @override
   Future<String> reply(String userText, String factsContext) async =>
-      factsContext;
+  'I can help you review your medication schedule, doses, and reminders. '
+  'Tell me what you need help with, and I will not record changes without '
+  'your confirmation.';
 }
 
 class GoogleAiStudioClient implements LlmClient {
