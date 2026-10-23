@@ -95,6 +95,7 @@ class ChatAgent {
       return handle(text);
     }
 
+    memory.add('user', text);
     final context = _factsContext();
     try {
       final llmReply = await llm.reply(text, context);
@@ -126,7 +127,17 @@ class ChatAgent {
         ? 'No medications logged yet.'
         : 'Logged today: ${_medicationNames(tools.loggedMedIds)}.';
 
-    return 'Medication list: $medSummary. $takenSummary';
+    final recentConversation = memory.messages.length <= 12
+      ? memory.messages
+      : memory.messages.sublist(memory.messages.length - 12);
+    final conversationSummary = recentConversation.isEmpty
+      ? 'No previous conversation.'
+      : recentConversation
+        .map((message) => '${message.role}: ${message.text}')
+        .join('\n');
+
+    return 'Medication list: $medSummary. $takenSummary\n'
+      'Recent conversation:\n$conversationSummary';
   }
 
   String _handleTook(String lower) {

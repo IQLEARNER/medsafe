@@ -9,12 +9,19 @@ import 'package:medsafe/chat/meta_model_client.dart';
 class FakeLlmClient implements LlmClient {
   String? lastUserText;
   String? lastFactsContext;
+  final List<String> contexts = [];
+  final List<String> replies;
+
+  FakeLlmClient({this.replies = const []});
 
   @override
   Future<String> reply(String userText, String factsContext) async {
     lastUserText = userText;
     lastFactsContext = factsContext;
-    return 'LLM guidance: follow the medication schedule and ask your clinician before changing anything.';
+    contexts.add(factsContext);
+    return replies.isEmpty
+        ? 'LLM guidance: follow the medication schedule and ask your clinician before changing anything.'
+        : replies[contexts.length - 1];
   }
 }
 
@@ -95,6 +102,31 @@ void main() {
     expect(reply, contains('LLM guidance'));
     expect(llm.lastUserText, 'Can you explain my schedule?');
     expect(llm.lastFactsContext, isNotEmpty);
+  });
+
+  test('follow-up dosage messages retain the prior medication conversation', () async {
+    final llm = FakeLlmClient(
+      replies: const [
+        'What dosage amount and schedule should I use for prednisone?',
+        'Thanks. I have the prednisone dosage details for you to review.',
+      ],
+    );
+    final a = ChatAgent(
+      tools: AppTools(todaysMeds: const [], loggedMedIds: const []),
+      memory: ChatRepository(),
+      llm: llm,
+    );
+
+    await a.handleAsync('I want to add prednisone.');
+    final reply = await a.handleAsync('20 mg once daily');
+
+    expect(reply, contains('prednisone dosage details'));
+    expect(llm.contexts[1], contains('user: I want to add prednisone.'));
+    expect(
+      llm.contexts[1],
+      contains('assistant: What dosage amount and schedule should I use for prednisone?'),
+    );
+    expect(llm.contexts[1], contains('user: 20 mg once daily'));
   });
 
   test('Google AI Studio response is parsed from Gemini candidate text', () {
